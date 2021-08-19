@@ -1,0 +1,6 @@
+## Interface: 90100
+## Title: QuickGroups
+## Author: Jakob Widauer
+## Version: 1.0
+
+main.lua
