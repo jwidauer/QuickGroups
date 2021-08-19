@@ -3,6 +3,11 @@ local Debug = function(str, ...)
     DEFAULT_CHAT_FRAME:AddMessage(("Addon: %s"):format(str));
 end
 
+local Colors = {}
+Colors.blue = "|cff4287f5";
+Colors.reset = "|r";
+function Colors:MakeBlue(str) return Colors.blue .. str .. Colors.reset; end
+
 local QuickGroups = QuickGroups or {};
 
 QuickGroups.frame = CreateFrame("Frame", nil, UIParent);
@@ -24,14 +29,35 @@ function QuickGroups.frame:PLAYER_ENTERING_WORLD(delayed)
         local map_id = C_MythicPlus.GetOwnedKeystoneChallengeMapID();
         local map_name = select(1, C_ChallengeMode.GetMapUIInfo(map_id));
 
-        greeting = greeting .. "Your current keystone is: |cff4287f5" ..
-                       map_name .. " +" .. keystone_lvl .. "|r";
+        greeting = greeting .. "Your current keystone is: " ..
+                       Colors:MakeBlue(map_name .. " +" .. keystone_lvl);
     else
         greeting = greeting .. "You currently don't own a Mythic+ keystone!";
     end
 
     print(greeting);
 end
+
+-- Set up slash commands
+function QuickGroups.frame:SlashHandler(msg, editbox)
+    if (msg == "") then
+        Debug("Settings!");
+    elseif (tonumber(msg)) then
+        local key_lvl = tonumber(msg);
+        local gv, eod = C_MythicPlus.GetRewardLevelForDifficultyLevel(key_lvl);
+        print("For a " .. Colors:MakeBlue("+" .. key_lvl) ..
+                  " key, the rewards are:")
+        print("End of dungeon: " .. Colors:MakeBlue(eod));
+        print("Great vault: " .. Colors:MakeBlue(gv));
+    else
+        print("Usage: /qg [N]")
+    end
+end
+
+SLASH_QUICKGROUPS1 = "/qg"
+SlashCmdList["QUICKGROUPS"] = function(msg, editbox)
+    QuickGroups.frame:SlashHandler(msg, editbox)
+end;
 
 local function add_tooltip_text(tooltip)
     local name, _ = tooltip:GetItem();
@@ -51,7 +77,7 @@ local function GetActivityGrpIdFromMapId(map_id)
     local map_name = C_ChallengeMode.GetMapUIInfo(map_id);
 
     -- Create map of map name -> group id
-    grp_id_dict = {};
+    local grp_id_dict = {};
     for i = 259, 266 do
         local name = C_LFGList.GetActivityGroupInfo(i);
         grp_id_dict[name] = i;
@@ -62,30 +88,40 @@ end
 
 local function CreateListing(item_string)
     local item_data = {strsplit(":", item_string)}
-    
+
     -- If the item is not a keystone, do nothing
     if item_data[1] ~= "keystone" then return; end
-    
-    group_id = GetActivityGrpIdFromMapId(item_data[3])
 
     -- Open up group creation panel if not already open
     local panel = LFGListFrame.EntryCreation;
     if (not LFGListFrame.EntryCreation:IsVisible()) then
         PVEFrame_ShowFrame("GroupFinderFrame", "LFGListPVEStub");
-        
+
         -- categoryID 2 == Dungeons
         LFGListEntryCreation_Show(panel, LFGListFrame.baseFilters, 2,
                                   panel.selectedFilters);
-        LFGListEntryCreation_Select(panel, nil, nil, group_id, nil)
     end
 
     -- Fill out group info
+
+    -- Select correct dungeon
+    local group_id = GetActivityGrpIdFromMapId(item_data[3])
+    LFGListEntryCreation_Select(panel, nil, nil, group_id, nil)
+
+    -- Get min ilvl by rounding down to next multiple of 10
+    local _, avg_ilvl, _ = GetAverageItemLevel();
+    local min_ilvl = avg_ilvl - avg_ilvl % 10;
+
+    -- Set min ilvl
+    panel.ItemLevel.EditBox:SetText(min_ilvl);
+
+    -- Change description / name to key level
     local level = item_data[4];
 
-    local _, avg_ilvl, _ = GetAverageItemLevel();
-    
-    -- Get min ilvl by rounding down to next multiple of 10
-    local min_ilvl = avg_ilvl - avg_ilvl % 10;
+    local current_text = panel.NameLabel:GetText();
+    panel.NameLabel:SetText(current_text .. " (suggested: \"+" .. level .. "\")");
+
+    Debug("is secure? " .. tostring(issecure()));
 
     Debug("level: " .. level);
     Debug("min ilvl: " .. min_ilvl);
