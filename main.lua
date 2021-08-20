@@ -120,25 +120,6 @@ local function CreateListing(item_string)
 
     local current_text = panel.NameLabel:GetText();
     panel.NameLabel:SetText(current_text .. " (suggested: \"+" .. level .. "\")");
-
-    Debug("is secure? " .. tostring(issecure()));
-
-    Debug("level: " .. level);
-    Debug("min ilvl: " .. min_ilvl);
-
-    -- local activities = C_LFGList.GetAvailableActivities(2, 0, bit.bor(panel.baseFilters, panel.selectedFilters, LE_LFG_LIST_FILTER_RECOMMENDED));
-    -- Debug("Nr of available activities: "..tostring(#activities))
-    -- for _, activityID in ipairs(activities) do
-    --     local name = select(ACTIVITY_RETURN_VALUES.shortName, C_LFGList.GetActivityInfo(activityID));
-    --     Debug(tostring(activityID).." "..name)
-    -- end
-
-    -- local groups = C_LFGList.GetAvailableActivityGroups(2, bit.bor(panel.baseFilters, panel.selectedFilters, LE_LFG_LIST_FILTER_RECOMMENDED));
-    -- Debug("Nr of available activity groups: "..tostring(#groups))
-    -- for _, groupID in ipairs(groups) do
-    --     local name = C_LFGList.GetActivityGroupInfo(groupID);
-    --     Debug(tostring(groupID).." "..name)
-    -- end
 end
 
 local function OnModifiedClick(self, button)
