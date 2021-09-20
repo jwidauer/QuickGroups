@@ -1,0 +1,11 @@
+## Interface: 90100
+## Title: QuickGroups
+## Author: Jakob Widauer
+## Version: 1.0
+## SavedVariables: QuickGroupsConfig
+
+addon.lua
+colors.lua
+config_gui.lua
+config.lua
+quickgroups.lua
